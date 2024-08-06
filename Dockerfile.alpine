@@ -1,0 +1,13 @@
+FROM alpine:latest
+
+LABEL DESCRIPTION "Nginx image alpine, minus modsec"
+#RUN apk update && apk add nginx nginx-mod-http-headers-more modsecurity-nginx modsecurity
+RUN apk update && apk add nginx nginx-mod-http-headers-more 
+COPY ./docker-entrypoint.sh /
+RUN mkdir /docker-entrypoint.d
+COPY ./docker-entrypoint.d/* /docker-entrypoint.d/
+COPY ./*.conf /etc/nginx 
+# RUN echo "ModSecurityEnabled on;" >> /etc/nginx/nginx.conf
+ENTRYPOINT ["/docker-entrypoint.sh"]  
+STOPSIGNAL SIGQUIT
+CMD ["nginx" "-g" "daemon off;"]    

@@ -1,0 +1,24 @@
+FROM ubuntu:latest as builder
+
+
+# Build latest mod sec 
+RUN apt update && apt install -y nginx libnginx-mod-http-headers-more-filter libmodsecurity3 modsecurity-crs git wget curl gcc make 
+RUN mkdir -p /opt
+WORKDIR /opt
+RUN cd /opt && git clone --depth 1 https://github.com/SpiderLabs/ModSecurity-nginx.git
+COPY build-nginx-modsec.sh /opt
+RUN /opt/build-nginx-modsec.sh
+
+FROM ubuntu:latest
+LABEL MAINTAINER "Docker file maintained by hackacharya"
+LABEL DESCRIPTION "Nginx image with modsec and more filter-ubuntu base"
+RUN apt update && apt install -y nginx libnginx-mod-http-headers-more-filter libmodsecurity3 modsecurity-crs
+RUN mkdir -p /etc/nginx/modules/
+COPY ./*.conf /etc/nginx/
+COPY --from=builder objs/*.so /etc/nginx/modules/
+COPY ./docker-entrypoint.sh /
+RUN mkdir /docker-entrypoint.d
+COPY ./docker-entrypoint.d/* /docker-entrypoint.d/
+ENTRYPOINT ["/docker-entrypoint.sh"]  
+STOPSIGNAL SIGQUIT
+CMD ["nginx" "-g" "daemon off;"]    

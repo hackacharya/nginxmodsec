@@ -1,0 +1,15 @@
+FROM debian:bookworm
+
+LABEL DESCRIPTION "Nginx image debian base"
+
+RUN apt update && apt install -y nginx libnginx-mod-http-headers-more-filter libmodsecurity3 modsecurity-crs libnginx-mod-http-modsecurity libmodsecurity-dev
+COPY ./docker-entrypoint.sh /
+RUN mkdir /docker-entrypoint.d
+COPY ./docker-entrypoint.d/* /docker-entrypoint.d/
+COPY ./*.conf /etc/nginx/
+# RUN echo "ModSecurityEnabled on;" >> /etc/nginx/nginx.conf
+ENTRYPOINT ["/docker-entrypoint.sh"]  
+STOPSIGNAL SIGQUIT
+CMD ["nginx" "-g" "daemon off;"]    
+
+#/usr/lib/nginx/modules/ngx_http_modsecurity_module.so
